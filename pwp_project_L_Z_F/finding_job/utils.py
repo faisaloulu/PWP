@@ -1,7 +1,7 @@
 import json
 from flask import Response, request, url_for
-from sensorhub.constants import *
-from sensorhub.models import *
+from finding_job.constants import *
+from finding_job.models import *
 
 class MasonBuilder(dict):
     """
@@ -68,7 +68,7 @@ class MasonBuilder(dict):
         self["@controls"][ctrl_name]["href"] = href
 
 
-class SensorhubBuilder(MasonBuilder):
+class JobBuilder(MasonBuilder):
 
     def add_control_delete_sensor(self, sensor):
         self.add_control(
@@ -88,14 +88,14 @@ class SensorhubBuilder(MasonBuilder):
             schema=Measurement.get_schema()
         )
 
-    def add_control_add_sensor(self):
+    def add_control_add_job(self):
         self.add_control(
-            "senhub:add-sensor",
-            url_for("api.sensorcollection"),
+            "mumeta:add-job",
+            url_for("api.jobcollection"),
             method="POST",
             encoding="json",
-            title="Add a new sensor",
-            schema=Sensor.get_schema()
+            title="Add a new job",
+            schema=Job.get_schema()
         )
 
     def add_control_modify_sensor(self, sensor):
@@ -108,16 +108,40 @@ class SensorhubBuilder(MasonBuilder):
             schema=Sensor.get_schema()
         )
 
-    def add_control_get_measurements(self, sensor):
-        base_uri = url_for("api.measurementcollection", sensor=sensor)
+    def add_control_get_companys(self):
+        base_uri = url_for("api.companycollection")
         uri = base_uri + "?start={index}"
         self.add_control(
-            "senhub:measurements",
+            "mumeta:companys",
             uri,
             isHrefTemplate=True,
             schema=self._paginator_schema()
         )
-
+    def add_control_add_company(self):
+        self.add_control(
+            "mumeta:add-company",
+            url_for("api.companycollection"),
+            method="POST",
+            encoding="json",
+            title="Add a new company",
+            schema=Company.get_schema()
+        )
+    def add_control_edit_company(self,company):
+        self.add_control(
+            "edit",
+            url_for("api.companyitem", company=company),
+            method="PUT",
+            encoding="json",
+            title="Edit this company",
+            schema=Company.get_schema()
+        )
+    def add_control_delete_company(self,company):
+        self.add_control(
+            "finding_job:delete",
+            url_for("api.companyitem", company=company),
+            method="DELETE",
+            title="Delete this sensor"
+        )
     @staticmethod
     def _paginator_schema():
         schema = {
