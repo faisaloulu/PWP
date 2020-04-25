@@ -70,24 +70,24 @@ class MasonBuilder(dict):
 
 class JobBuilder(MasonBuilder):
 
-    def add_control_delete_sensor(self, sensor):
+    def add_control_edit_seeker(self, seeker):
         self.add_control(
-            "senhub:delete",
-            url_for("api.sensoritem", sensor=sensor),
-            method="DELETE",
-            title="Delete this sensor"
-        )
-
-    def add_control_add_measurement(self, sensor):
-        self.add_control(
-            "senhub:add-measurement",
-            url_for("api.measurementcollection", sensor=sensor),
-            method="POST",
+            "edit",
+            url_for("api.seekeritem", seeker=seeker),
+            method="PUT",
             encoding="json",
-            title="Add a new measurement for this sensor",
-            schema=Measurement.get_schema()
+            title="Edit this job",
+            schema=Jobseeker.get_schema()
         )
-
+    def add_control_get_jobs(self):
+        base_uri = url_for("api.jobcollection")
+        uri = base_uri + "?start={index}"
+        self.add_control(
+            "mumeta:jobs",
+            uri,
+            isHrefTemplate=True,
+            schema=self._paginator_schema()
+        )
     def add_control_add_job(self):
         self.add_control(
             "mumeta:add-job",
@@ -98,16 +98,28 @@ class JobBuilder(MasonBuilder):
             schema=Job.get_schema()
         )
 
-    def add_control_modify_sensor(self, sensor):
+    def add_control_edit_job(self, job):
         self.add_control(
             "edit",
-            url_for("api.sensoritem", sensor=sensor),
+            url_for("api.jobitem", job=job),
             method="PUT",
             encoding="json",
-            title="Edit this sensor",
-            schema=Sensor.get_schema()
+            title="Edit this job",
+            schema=Job.get_schema()
         )
 
+    def add_control_delete_job(self, job):
+        self.add_control(
+            "finding_job:delete",
+            url_for("api.jobitem", job=job),
+            method="DELETE",
+            title="Delete this job"
+        )
+    # def add_control_get_jobs_by_company(self):
+    #     self.add_control(
+    #         "mumeta:jobs_by_company",
+    #
+    #     )
     def add_control_get_companys(self):
         base_uri = url_for("api.companycollection")
         uri = base_uri + "?start={index}"
@@ -140,7 +152,15 @@ class JobBuilder(MasonBuilder):
             "finding_job:delete",
             url_for("api.companyitem", company=company),
             method="DELETE",
-            title="Delete this sensor"
+            title="Delete this company"
+        )
+    def add_control_add_jobs_by_seeker(self,seeker,job):
+        self.add_control(
+            "mumeta:add_jobs_by_seeker",
+            url_for("api.job_by_seeker"),
+            method = "POST",
+            encoding = "json",
+            title = "Add a new job, please send your id and the job's id you choose"
         )
     @staticmethod
     def _paginator_schema():

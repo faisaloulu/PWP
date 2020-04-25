@@ -4,4 +4,6 @@ ERROR_PROFILE = "/profiles/error/"
 COMPANY_PROFILE = "/profiles/company/"
 JOB_PROFILE = "/profiles/job/"
 JOBSEEKER_PROFILE = "/profiles/jobseeker/"
+JOBSBYSEEKER_PROFILE = "/profiles/jobs_by_seeker"
+JOBSBYCOMPANY_PROFILE = "/profiles/jobs_by_company"
 MEASUREMENT_PAGE_SIZE = 50

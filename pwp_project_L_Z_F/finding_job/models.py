@@ -14,7 +14,7 @@ provide = db.Table("provide",
 
 class Jobseeker(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(20), nullable=True)
+    name = db.Column(db.String(20), nullable=True,unique=True)
     identify = db.Column(db.String(20), nullable=True)
     specialty = db.Column(db.String(20), nullable=True)
     address = db.Column(db.String(20), nullable=True)
@@ -23,7 +23,46 @@ class Jobseeker(db.Model):
     desired_address = db.Column(db.String(20), nullable=True)
     CV = db.Column(db.String(400), nullable=True, unique=True)
     jobs = db.relationship("Job", secondary=seek, back_populates="jobseekers")
-
+    @staticmethod
+    def get_schema():
+        schema = {
+            "type": "object",
+            "required": ["name", "identify","specialty","address","phone_number","desired_position","desired_address","CV"]
+        }
+        props = schema["properties"] = {}
+        props["name"] = {
+            "description": "jobseeker's unique name",
+            "type": "string"
+        }
+        props["identify"] = {
+            "description": "identify of the jobseeker",
+            "type": "string"
+        }
+        props["specialty"] = {
+            "description":"specialty of the jobseeker",
+            "type":"string"
+        }
+        props["address"] = {
+            "description": "home address of the jobseeker",
+            "type": "string"
+        }
+        props["phone_number"] = {
+            "description": "phone_number of the jobseeker",
+            "type": "string"
+        }
+        props["desired_position"] = {
+            "description": "what job the jobseeker wants",
+            "type": "string"
+        }
+        props["desired_address"] = {
+            "description": "where the jobseeker wants to work",
+            "type": "string"
+        }
+        props["CV"] = {
+            "description": "CV of the jobseeker",
+            "type": "string"
+        }
+        return schema
 
 class Job(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -51,19 +90,19 @@ class Job(db.Model):
             "type": "string"
         }
         props["introduction"] = {
-            "introduction":"introduction of the job",
+            "description":"introduction of the job",
             "type":"string"
         }
         props["applicant_number"] = {
-            "introduction": "number of applicants of the job, please set it as 0 as a new one",
+            "description": "number of applicants of the job, please set it as 0 as a new one",
             "type": "integer"
         }
         props["category"] = {
-            "introduction": "category of the job",
+            "description": "category of the job",
             "type": "string"
         }
         props["region"] = {
-            "introduction": "region of the job",
+            "description": "region of the job",
             "type": "string"
         }
         return schema
@@ -100,59 +139,6 @@ class Company(db.Model):
         }
         return schema
 
-# class Sensor(db.Model):
-#     id = db.Column(db.Integer, primary_key=True)
-#     name = db.Column(db.String(32), nullable=False, unique=True)
-#     model = db.Column(db.String(128), nullable=False)
-#     location_id = db.Column(db.Integer, db.ForeignKey("location.id"), unique=True)
-#
-#     location = db.relationship("Location", back_populates="sensor")
-#     measurements = db.relationship("Measurement", back_populates="sensor")
-#     deployments = db.relationship("Deployment", secondary=deployments, back_populates="sensors")
-#
-#     @staticmethod
-#     def get_schema():
-#         schema = {
-#             "type": "object",
-#             "required": ["name", "model"]
-#         }
-#         props = schema["properties"] = {}
-#         props["name"] = {
-#             "description": "Sensor's unique name",
-#             "type": "string"
-#         }
-#         props["model"] = {
-#             "description": "Name of the sensor's model",
-#             "type": "string"
-#         }
-#         return schema
-#
-#
-# class Measurement(db.Model):
-#     id = db.Column(db.Integer, primary_key=True)
-#     sensor_id = db.Column(db.Integer, db.ForeignKey("sensor.id", ondelete="SET NULL"))
-#     value = db.Column(db.Float, nullable=False)
-#     time = db.Column(db.DateTime, nullable=False)
-#
-#     sensor = db.relationship("Sensor", back_populates="measurements")
-#
-#     @staticmethod
-#     def get_schema():
-#         schema = {
-#             "type": "object",
-#             "required": ["value"]
-#         }
-#         props = schema["properties"] = {}
-#         props["value"] = {
-#             "description": "Measured value.",
-#             "type": "number"
-#         }
-#         props["time"] = {
-#             "description": "Measurement timestamp",
-#             "type": "string",
-#             "pattern": "^[0-9]{4}-[01][0-9]-[0-3][0-9]T[0-9]{2}:[0-5][0-9]:[0-5][0-9]Z$"
-#         }
-#         return schema
 
 
 @click.command("init-db")

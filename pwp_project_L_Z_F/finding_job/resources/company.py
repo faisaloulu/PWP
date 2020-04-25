@@ -23,7 +23,7 @@ class CompanyCollection(Resource):
             return create_error_response(
                 404, "Not found", "No companys"
             )
-        for db_company in Job.query.all():
+        for db_company in Company.query.all():
             item = JobBuilder(
                 name=db_company.name,
                 address=db_company.address,
@@ -46,7 +46,6 @@ class CompanyCollection(Resource):
             validate(request.json, Company.get_schema())
         except ValidationError as e:
             return create_error_response(400, "Invalid JSON document", str(e))
-        name = str.strip(request.json["name"])
         company = Company(
             name=request.json["name"],
             address=request.json["address"],
@@ -77,10 +76,10 @@ class CompanyItem(Resource):
             )
 
         body = JobBuilder(
-            name=request.json["name"],
-            address=request.json["address"],
-            introduction=request.json["introduction"],
-            phone_number=request.json["phone_number"]
+            name=db_company.name,
+            address=db_company.address,
+            introduction=db_company.introduction,
+            phone_number=db_company.phone_number
         )
         body.add_namespace("mumeta", LINK_RELATIONS_URL)
         body.add_control("self", url_for("api.companyitem", name=company))
