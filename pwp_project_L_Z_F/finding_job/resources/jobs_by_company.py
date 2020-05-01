@@ -3,6 +3,7 @@ import json
 from flask import request, Response, url_for
 from flask_restful import Resource
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
 
 from finding_job.constants import *
 from finding_job.models import Company, seek,provide,Job,Jobseeker
@@ -12,7 +13,14 @@ from finding_job import db
 
 class Jobs_By_Company(Resource):
     def get(self,company_id):
-        db_jobs_by_company = provide.query.filter_by(company_id=company_id)
+        body = JobBuilder()
+        body["items"] = []
+        body.add_namespace("mumeta", LINK_RELATIONS_URL)
+        body.add_control("self", url_for("api.jobs_by_company", company_id=company_id))
+        body.add_control("profile", JOBSBYCOMPANY_PROFILE)
+        body.add_control_get_company(company_id)
+        body.add_control_get_jobs()
+        db_jobs_by_company = Session.query(provide).filter_by(company_id)
         if db_jobs_by_company is None:
             return create_error_response(
                 404, "Not found",
@@ -28,49 +36,49 @@ class Jobs_By_Company(Resource):
                 category=db_job.category,
                 region=db_job.region
             )
-            item.add_control("self", url_for("api.jobs_by_company", company_id=db_job.id))
+            item.add_control("self", url_for("api.jobs_by_company", company_id=company_id))
             item.add_control("profile", JOBSBYCOMPANY_PROFILE)
+            item.add_control_get_job(job_id)
             body["items"].append(item)
+        body.add_control_add_jobs_by_company(company_id)
         return Response(json.dumps(body), 200, mimetype=MASON)
 
-
-        body.add_namespace("mumeta", LINK_RELATIONS_URL)
-        body.add_control("self", url_for("api.jobs_by_seeker", seeker=seeker,job=job))
-        body.add_control("profile", JOBSBYSEEKER_PROFILE_PROFILE)
-        body.add_control_add_jobs_by_seeker(seeker,job)
-        body.add_control_delete_jobs_by_seeker(seeker,job)
-        body.add_control_get_job(job)
-        body.add_control_get_seeker(seeker)
-        return Response(json.dumps(body), 200, mimetype=MASON)
-
-    def post(self,seeker_id,job_id):
+    def post(self,company_id):
         if not request.json:
             return create_error_response(
                 415, "Unsupported media type",
                 "Requests must be JSON"
             )
-        jobs_by_seeker = seek(
-            seeker_id=seeker_id,
-            job_id=job_id
+        job = Job(
+            name=request.json["name"],
+            salary=request.json["salary"],
+            introduction=request.json["introduction"],
+            applicant_number=0,
+            category=request.json["category"],
+            region=request.json["region"]
         )
         try:
-            db.session.add(jobs_by_seeker)
+            db.session.add(job)
             db.session.commit()
         except IntegrityError:
             return create_error_response(
                 409, "Already exists",
-                "jobs_by_seeker with name '{}' already exists.".format(jobs_by_seeker)
+                "Job with introduction '{}' already exists.".format(request.json["introduction"])
+            )
+        introduction=request.json["introduction"]
+        job_id = Job.query.filter_by(introduction=introduction).id
+        jobs_by_company = provide(
+            job_id=job_id,
+            company_id=company_id,
+        )
+        try:
+            db.session.add(jobs_by_company)
+            db.session.commit()
+        except IntegrityError:
+            return create_error_response(
+                409, "Already exists",
+                "Company with id '{}' already exists.".format(request.json["job_id"],request.json["company_id"])
             )
         return Response(status=201, headers={
-            "Location": url_for("api.Jobs_By_Seeker", seeker_id=seeker_id,job_id=job_id)
+            "Location": url_for("api.jobs_by_company", company_id=company_id,job_id=job_id)
         })
-    def delete(self, seeker_id,job_id):
-        db_jobs_by_seeker = seek.query.filter_by(seeker_id=seeker_id, job_id=job_id).first()
-        if db_jobs_by_seeker is None:
-            return create_error_response(
-                404, "Not found",
-                "No jobs_by_seeker was found with the name {}".format(seeker_id,job_id)
-            )
-        db.session.delete(db_jobs_by_seeker)
-        db.session.commit()
-        return Response(status=204)

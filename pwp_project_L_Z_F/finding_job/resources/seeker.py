@@ -31,17 +31,51 @@ class SeekerItem(Resource):
             CV=db_seeker.CV
         )
         body.add_namespace("mumeta", LINK_RELATIONS_URL)
-        body.add_control("self", url_for("api.seekeritem", name=seeker))
+        body.add_control("self", url_for("api.seekeritem"))
         body.add_control("profile", JOBSEEKER_PROFILE)
+        body.add_control_add_seeker()
         body.add_control_edit_seeker()
         body.add_control_get_companys()
+        body.add_control_get_jobs_by_seeker()
         return Response(json.dumps(body), 200, mimetype=MASON)
+    def post(self):
+        if not request.json:
+            return create_error_response(
+                415, "Unsupported media type",
+                "Requests must be JSON"
+            )
+
+        try:
+            validate(request.json, Jobseeker.get_schema())
+        except ValidationError as e:
+            return create_error_response(400, "Invalid JSON document", str(e))
+        seeker = Jobseeker(
+            name=request.json["name"],
+            identify=request.json["identify"],
+            specialty=request.json["specialty"],
+            address=request.json["address"],
+            phone_number=request.json["phone_number"],
+            desired_position=request.json["desired_position"],
+            desired_address=request.json["desired_address"],
+            CV=request.json["CV"]
+        )
+        try:
+            db.session.add(seeker)
+            db.session.commit()
+        except IntegrityError:
+            return create_error_response(
+                409, "Already exists",
+                "Seeker with name '{}' already exists.".format(request.json["name"])
+            )
+
+        return Response(status=201, headers={
+            "Location": url_for("api.seekeritem")
+        })
     def put(self):
-        db_seeker = Jobseeker.query.filter_by(name=seeker).first()
+        db_seeker = Jobseeker.query.filter_by
         if db_seeker is None:
             return create_error_response(
                 404, "Not found",
-                "No jobseeker was found with the name {}".format(seeker)
             )
 
         if not request.json:

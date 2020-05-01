@@ -3,7 +3,7 @@ from flask.cli import with_appcontext
 from finding_job import db
 
 seek = db.Table("seek",
-                db.Column("seeker_id", db.Integer, db.ForeignKey("seeker.id"), primary_key=True),
+                db.Column("seeker_id", db.Integer, db.ForeignKey("jobseeker.id"), primary_key=True),
                 db.Column("job_id", db.Integer, db.ForeignKey("job.id"), primary_key=True)
                 )
 provide = db.Table("provide",
@@ -78,7 +78,7 @@ class Job(db.Model):
     def get_schema():
         schema = {
             "type": "object",
-            "required": ["name", "salary","introduction","applicant_number","category","region"]
+            "required": ["name", "salary","introduction","category","region"]
         }
         props = schema["properties"] = {}
         props["name"] = {
@@ -92,10 +92,6 @@ class Job(db.Model):
         props["introduction"] = {
             "description":"introduction of the job",
             "type":"string"
-        }
-        props["applicant_number"] = {
-            "description": "number of applicants of the job, please set it as 0 as a new one",
-            "type": "integer"
         }
         props["category"] = {
             "description": "category of the job",
