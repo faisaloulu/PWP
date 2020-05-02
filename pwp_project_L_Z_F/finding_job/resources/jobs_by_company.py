@@ -3,10 +3,9 @@ import json
 from flask import request, Response, url_for
 from flask_restful import Resource
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
 
 from finding_job.constants import *
-from finding_job.models import Company, seek,provide,Job,Jobseeker
+from finding_job.models import Company, Seek,Provide,Job,Jobseeker
 from finding_job.utils import JobBuilder, create_error_response
 from jsonschema import validate, ValidationError
 from finding_job import db
@@ -20,26 +19,26 @@ class Jobs_By_Company(Resource):
         body.add_control("profile", JOBSBYCOMPANY_PROFILE)
         body.add_control_get_company(company_id)
         body.add_control_get_jobs()
-        db_jobs_by_company = Session.query(provide).filter_by(company_id)
-        if db_jobs_by_company is None:
-            return create_error_response(
-                404, "Not found",
+        db_jobs=Provide.query.filter_by(company_id=company_id)
+        if db_jobs is None:
+           return create_error_response(
+               404, "Not found",
+           )
+        for job_id in db_jobs:
+           db_job = Job.query.filter_by(id=job_id.job_id).first()
+           item = JobBuilder(
+               id = db_job.id,
+               name=db_job.name,
+               salary=db_job.salary,
+               introduction=db_job.introduction,
+               applicant_number=db_job.applicant_number,
+               category=db_job.category,
+               region=db_job.region,
             )
-        for job_id in db_jobs_by_company.job_id:
-            db_job = Job.query.filter_by(job_id).first()
-            item = JobBuilder(
-                id = db_job.id,
-                name=db_job.name,
-                salary=db_job.salary,
-                introduction=db_job.introduction,
-                applicant_number=db_job.applicant_number,
-                category=db_job.category,
-                region=db_job.region
-            )
-            item.add_control("self", url_for("api.jobs_by_company", company_id=company_id))
-            item.add_control("profile", JOBSBYCOMPANY_PROFILE)
-            item.add_control_get_job(job_id)
-            body["items"].append(item)
+           item.add_control("self", url_for("api.jobs_by_company", company_id=company_id))
+           item.add_control("profile", JOBSBYCOMPANY_PROFILE)
+           item.add_control_get_job(company_id,db_job.id)
+           body["items"].append(item)
         body.add_control_add_jobs_by_company(company_id)
         return Response(json.dumps(body), 200, mimetype=MASON)
 
@@ -55,7 +54,7 @@ class Jobs_By_Company(Resource):
             introduction=request.json["introduction"],
             applicant_number=0,
             category=request.json["category"],
-            region=request.json["region"]
+            region=request.json["region"],
         )
         try:
             db.session.add(job)
@@ -65,9 +64,12 @@ class Jobs_By_Company(Resource):
                 409, "Already exists",
                 "Job with introduction '{}' already exists.".format(request.json["introduction"])
             )
+
         introduction=request.json["introduction"]
-        job_id = Job.query.filter_by(introduction=introduction).id
-        jobs_by_company = provide(
+        name=request.json["name"]
+        job_id = Job.query.filter_by(name=name,introduction=introduction).first().id
+        company_id=Company.query.filter_by(id=company_id).first().id
+        jobs_by_company = Provide(
             job_id=job_id,
             company_id=company_id,
         )
@@ -77,7 +79,7 @@ class Jobs_By_Company(Resource):
         except IntegrityError:
             return create_error_response(
                 409, "Already exists",
-                "Company with id '{}' already exists.".format(request.json["job_id"],request.json["company_id"])
+                "job with company '{}' already exists.".format(company_id)
             )
         return Response(status=201, headers={
             "Location": url_for("api.jobs_by_company", company_id=company_id,job_id=job_id)

@@ -5,7 +5,7 @@ from flask_restful import Resource
 from sqlalchemy.exc import IntegrityError
 
 from finding_job.constants import *
-from finding_job.models import Company, seek,provide,Job,Jobseeker
+from finding_job.models import Company,Seek,Provide,Job,Jobseeker
 from finding_job.utils import JobBuilder, create_error_response
 from jsonschema import validate, ValidationError
 from finding_job import db
@@ -19,12 +19,12 @@ class CompanyCollection(Resource):
         body.add_control("profile", COMPANY_PROFILE)
         body.add_control("collection", url_for("api.companycollection"))
         body.add_control_add_company()
-        db_company = Company.query.all
+        db_company = Company.query.all()
         if db_company is None:
             return create_error_response(
                 404, "Not found", "No companys"
             )
-        for db_company in Company.query.all():
+        for db_company in db_company:
             item = JobBuilder(
                 id=db_company.id,
                 name=db_company.name,
@@ -64,8 +64,9 @@ class CompanyCollection(Resource):
                 "Company with name '{}' already exists.".format(request.json["name"])
             )
 
+        company_id=Company.query.filter_by(name=request.json["name"]).first().id
         return Response(status=201, headers={
-            "Location": url_for("api.companyitem", company=request.json["name"])
+            "Location": url_for("api.companyitem", company_id=company_id)
         })
 
 class CompanyItem(Resource):
@@ -90,7 +91,6 @@ class CompanyItem(Resource):
         body.add_control("collection", url_for("api.companycollection"))
         body.add_control_delete_company(company_id)
         body.add_control_edit_company(company_id)
-        body.add_control_get_companys()
         body.add_control_get_jobs_by_company(company_id)
         return Response(json.dumps(body), 200, mimetype=MASON)
     def put(self, company_id):

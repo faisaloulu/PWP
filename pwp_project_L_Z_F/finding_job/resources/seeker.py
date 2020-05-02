@@ -5,7 +5,7 @@ from flask_restful import Resource
 from sqlalchemy.exc import IntegrityError
 
 from finding_job.constants import *
-from finding_job.models import Company, seek,provide,Job,Jobseeker
+from finding_job.models import Company, Seek,Provide,Job,Jobseeker
 from finding_job.utils import JobBuilder, create_error_response
 from jsonschema import validate, ValidationError
 from finding_job import db
@@ -13,11 +13,13 @@ from finding_job import db
 class SeekerItem(Resource):
 
     def get(self):
-        db_seeker = Jobseeker.query.all
+        db_seeker = Jobseeker.query.filter_by(id=1).first()
         if db_seeker is None:
             return create_error_response(
                 404, "Not found",
-                "No jobseeker was found with the name {}"
+                "No jobseeker was found,please add a new one(you can only add one seeker)"
+                "use post method, the information includes name, identify, specialty, address,"
+                "phone_number, desired_position, desired_address, CV"
             )
         body = JobBuilder(
             id=db_seeker.id,
@@ -33,10 +35,15 @@ class SeekerItem(Resource):
         body.add_namespace("mumeta", LINK_RELATIONS_URL)
         body.add_control("self", url_for("api.seekeritem"))
         body.add_control("profile", JOBSEEKER_PROFILE)
-        body.add_control_add_seeker()
         body.add_control_edit_seeker()
         body.add_control_get_companys()
-        body.add_control_get_jobs_by_seeker()
+        body.add_control_get_jobs()
+        body.add_control_get_jobs_by_seeker(db_seeker.id)
+        db_job=Seek.query.filter_by(seeker_id=1).first()
+        if db_job is not None:
+            job_id=db_job.job_id
+            company_id=Provide.query.filter_by(job_id=job_id).first().company_id
+            body.add_control_delete_jobs_by_seeker(company_id=company_id,job_id=job_id)
         return Response(json.dumps(body), 200, mimetype=MASON)
     def post(self):
         if not request.json:
@@ -72,7 +79,7 @@ class SeekerItem(Resource):
             "Location": url_for("api.seekeritem")
         })
     def put(self):
-        db_seeker = Jobseeker.query.filter_by
+        db_seeker = Jobseeker.query.filter_by(id=1).first()
         if db_seeker is None:
             return create_error_response(
                 404, "Not found",

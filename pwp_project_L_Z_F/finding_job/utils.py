@@ -72,7 +72,7 @@ class JobBuilder(MasonBuilder):
 
     def add_control_get_seeker(self):
         self.add_control(
-            "get",
+            "mumeta:get-seeker",
             url_for("api.seekeritem"),
             method="GET",
             encoding="json",
@@ -80,7 +80,7 @@ class JobBuilder(MasonBuilder):
         )
     def add_control_add_seeker(self):
         self.add_control(
-            "add",
+            "mumeta:add-seeker",
             url_for("api.seekeritem"),
             method="POST",
             encoding="json",
@@ -89,7 +89,7 @@ class JobBuilder(MasonBuilder):
         )
     def add_control_edit_seeker(self):
         self.add_control(
-            "edit",
+            "mumeta:seeker-edit",
             url_for("api.seekeritem"),
             method="PUT",
             encoding="json",
@@ -100,33 +100,33 @@ class JobBuilder(MasonBuilder):
         base_uri = url_for("api.jobcollection")
         uri = base_uri + "?start={index}"
         self.add_control(
-            "mumeta:jobs",
+            "mumeta:jobs-all",
             uri,
             isHrefTemplate=True,
             schema=self._paginator_schema()
         )
 
-    def add_control_edit_job(self, job_id):
+    def add_control_edit_job(self, company_id,job_id):
         self.add_control(
-            "edit",
-            url_for("api.jobitem", job_id=job_id),
+            "mumeta:job-edit",
+            url_for("api.jobitem",company_id=company_id, job_id=job_id),
             method="PUT",
             encoding="json",
             title="Edit this job",
             schema=Job.get_schema()
         )
 
-    def add_control_delete_job(self,company_id,job_id):
+    def add_control_delete_job(self, company_id,job_id):
         self.add_control(
-            "finding_job:delete",
+            "mumeta:job-delete",
             url_for("api.jobitem", company_id=company_id,job_id=job_id),
             method="DELETE",
             title="Delete this job"
         )
-    def add_control_get_job(self,job_id):
+    def add_control_get_job(self,company_id,job_id):
         self.add_control(
             "mumeta:get-job",
-            url_for("api.jobitem",job_id=job_id),
+            url_for("api.jobitem",company_id=company_id,job_id=job_id),
             method="GET",
             encoding="json",
             title="get a job according its id",
@@ -135,7 +135,7 @@ class JobBuilder(MasonBuilder):
         base_uri = url_for("api.companycollection")
         uri = base_uri + "?start={index}"
         self.add_control(
-            "mumeta:companys",
+            "mumeta:companys-all",
             uri,
             isHrefTemplate=True,
             schema=self._paginator_schema()
@@ -151,7 +151,7 @@ class JobBuilder(MasonBuilder):
         )
     def add_control_edit_company(self,company_id):
         self.add_control(
-            "edit",
+            "mumeta:company-edit",
             url_for("api.companyitem", company_id=company_id),
             method="PUT",
             encoding="json",
@@ -160,7 +160,7 @@ class JobBuilder(MasonBuilder):
         )
     def add_control_delete_company(self,company_id):
         self.add_control(
-            "finding_job:delete",
+            "mumeta:company-delete",
             url_for("api.companyitem", company_id=company_id),
             method="DELETE",
             title="Delete this company"
@@ -188,27 +188,36 @@ class JobBuilder(MasonBuilder):
             method="POST",
             encoding="json",
             title="Add a new job for the company",
+            schema=Job.get_schema(),
         )
-    def add_control_get_jobs_by_seeker(self):
+    def add_control_get_jobs_by_seeker(self,seeker_id):
         self.add_control(
             "mumeta:get_jobs_by_seeker",
-            url_for("api.jobs_by_seeker"),
+            url_for("api.jobs_by_seeker",seeker_id=seeker_id),
             method = "GET",
             encoding="json",
             title="get jobs applied by the seeker"
         )
-    def add_control_delete_jobs_by_seeker(self,job_id):
+    def add_control_delete_jobs_by_seeker(self,company_id,job_id):
         self.add_control(
             "mumeta:delete_jobs_by_seeker",
-            url_for("api.jobs_by_seeker",job_id=job_id),
+            url_for("api.seekers_by_job",company_id=company_id,job_id=job_id),
             method = "DELETE",
             encoding = "json",
             title = "delete a job that you applied before"
         )
-    def add_control_add_seekers_by_job(self,job_id):
+    def add_control_get_seekers_by_job(self,company_id,job_id):
+        self.add_control(
+            "mumeta:get-seekers-by-job",
+            url_for("api.seekers_by_job",company_id=company_id,job_id=job_id),
+            method="GET",
+            encoding="json",
+            title="check who has applied for this job, used by company",
+        )
+    def add_control_add_seekers_by_job(self,company_id,job_id):
         self.add_control(
             "mumeta:add-seekers-by-job",
-            url_for("api.seekers_by_job",job_id=job_id),
+            url_for("api.seekers_by_job",company_id=company_id,job_id=job_id),
             method="POST",
             encoding="json",
             title="add a attribute that someone apply for some job, namely apply for a job",

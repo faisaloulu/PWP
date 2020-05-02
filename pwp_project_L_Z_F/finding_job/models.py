@@ -1,17 +1,27 @@
 import click
 from flask.cli import with_appcontext
 from finding_job import db
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy import Table,Column,String,create_engine,MetaData
 
-seek = db.Table("seek",
-                db.Column("seeker_id", db.Integer, db.ForeignKey("jobseeker.id"), primary_key=True),
-                db.Column("job_id", db.Integer, db.ForeignKey("job.id"), primary_key=True)
-                )
-provide = db.Table("provide",
-                   db.Column("job_id", db.Integer, db.ForeignKey("job.id"), primary_key=True),
-                   db.Column("company_id", db.Integer, db.ForeignKey("company.id"), primary_key=True)
-                   )
-
-
+# seek = db.Table("seek",
+#                 db.Column("seeker_id", db.Integer, db.ForeignKey("jobseeker.id"), primary_key=True),
+#                 db.Column("job_id", db.Integer, db.ForeignKey("job.id"), primary_key=True)
+#                 )
+# provide = db.Table("provide",
+#                    db.Column("job_id", db.Integer, db.ForeignKey("job.id"), primary_key=True),
+#                    db.Column("company_id", db.Integer, db.ForeignKey("company.id"), primary_key=True)
+#                    )
+class Seek(db.Model):
+    seeker_id = db.Column(db.Integer,db.ForeignKey("jobseeker.id"),primary_key=True)
+    job_id = db.Column(db.Integer,db.ForeignKey("job.id"),primary_key=True)
+    seeker=db.relationship("Jobseeker",back_populates="seek")
+    job  = db.relationship("Job",back_populates="seeks")
+class Provide(db.Model):
+    job_id = db.Column(db.Integer,db.ForeignKey("job.id"),primary_key=True)
+    company_id = db.Column(db.Integer,db.ForeignKey("company.id"),primary_key=True)
+    jobs = db.relationship("Job",back_populates="provides")
+    company = db.relationship("Company",back_populates="provide")
 class Jobseeker(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(20), nullable=True,unique=True)
@@ -22,7 +32,7 @@ class Jobseeker(db.Model):
     desired_position = db.Column(db.String(20), nullable=True)
     desired_address = db.Column(db.String(20), nullable=True)
     CV = db.Column(db.String(400), nullable=True, unique=True)
-    jobs = db.relationship("Job", secondary=seek, back_populates="jobseekers")
+    seek = db.relationship("Seek", back_populates="seeker")
     @staticmethod
     def get_schema():
         schema = {
@@ -72,8 +82,8 @@ class Job(db.Model):
     applicant_number = db.Column(db.Integer, nullable=False)
     category = db.Column(db.String(20), nullable=False)
     region = db.Column(db.String(20), nullable=False)
-    jobseekers = db.relationship("Jobseeker", secondary=seek, back_populates="jobs")
-    companys = db.relationship("Company", secondary=provide, back_populates="jobss")
+    seeks = db.relationship("Seek", back_populates="job")
+    provides = db.relationship("Provide",  back_populates="jobs")
     @staticmethod
     def get_schema():
         schema = {
@@ -109,7 +119,7 @@ class Company(db.Model):
     address = db.Column(db.String(20), nullable=False)
     introduction = db.Column(db.String(20), nullable=False, unique=True)
     phone_number = db.Column(db.String(20), nullable=False, unique=True)
-    jobss = db.relationship("Job", secondary=provide, back_populates="companys")
+    provide = db.relationship("Provide", back_populates="company")
     @staticmethod
     def get_schema():
         schema = {
