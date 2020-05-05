@@ -37,6 +37,11 @@ def create_app(test_config=None):
     def send_link_relations():
         return "link relations"
 
+    @app.route("/")
+    def index():
+        return "Welcome to our finding_job project!",200
+
+
     @app.route("/profiles/<profile>/")
     def send_profile(profile):
         return "you requests {} profile".format(profile)

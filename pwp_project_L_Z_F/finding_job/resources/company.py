@@ -9,6 +9,15 @@ from finding_job.models import Company,Seek,Provide,Job,Jobseeker
 from finding_job.utils import JobBuilder, create_error_response
 from jsonschema import validate, ValidationError
 from finding_job import db
+class EntryPoint(Resource):
+    def get(self):
+        body = JobBuilder()
+        body.add_namespace("mumeta",LINK_RELATIONS_URL)
+        body.add_control_get_companys()
+        body.add_control_get_seeker()
+        return Response(json.dumps(body), 200, mimetype=MASON)
+
+
 class CompanyCollection(Resource):
 
     def get(self):

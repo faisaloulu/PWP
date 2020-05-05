@@ -96,7 +96,7 @@ class JobItem(Resource):
         body.add_namespace("mumeta", LINK_RELATIONS_URL)
         body.add_control("self", url_for("api.jobitem",company_id=company_id,job_id=job_id))
         body.add_control("profile", JOB_PROFILE)
-        body.add_control("collection", url_for("api.jobcollection"))
+        body.add_control("collection", url_for("api.jobs_by_company",company_id=company_id))
 
         body.add_control_edit_job(company_id=company_id,job_id=job_id)
         body.add_control_get_jobs()

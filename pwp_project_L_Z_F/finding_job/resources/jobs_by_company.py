@@ -35,7 +35,7 @@ class Jobs_By_Company(Resource):
                category=db_job.category,
                region=db_job.region,
             )
-           item.add_control("self", url_for("api.jobs_by_company", company_id=company_id))
+           item.add_control("self", url_for("api.jobitem", company_id=company_id,job_id=db_job.id))
            item.add_control("profile", JOBSBYCOMPANY_PROFILE)
            item.add_control_get_job(company_id,db_job.id)
            body["items"].append(item)

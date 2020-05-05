@@ -136,7 +136,7 @@ class JobBuilder(MasonBuilder):
         uri = base_uri + "?start={index}"
         self.add_control(
             "mumeta:companys-all",
-            uri,
+            base_uri,
             isHrefTemplate=True,
             schema=self._paginator_schema()
         )
