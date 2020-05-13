@@ -3,7 +3,7 @@
 Finding_job
 # Group information
 * Student 1. Liutianzhao 768829964@QQ.com
-* Student 2. Name and email
+* Student 2. Shouhua Zhang  shouhua.zhang@oulu.fi
 * Student 3. Name and email
 
 __Remember to include all required documentation and HOWTOs, including how to create and populate the database, how to run and test the API, the url to the entrypoint and instructions on how to setup and run the client__
