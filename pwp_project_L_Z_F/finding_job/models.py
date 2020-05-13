@@ -18,10 +18,11 @@ class Seek(db.Model):
     seeker=db.relationship("Jobseeker",back_populates="seek")
     job  = db.relationship("Job",back_populates="seeks")
 class Provide(db.Model):
-    job_id = db.Column(db.Integer,db.ForeignKey("job.id"),primary_key=True)
-    company_id = db.Column(db.Integer,db.ForeignKey("company.id"),primary_key=True)
+    job_id = db.Column(db.Integer,db.ForeignKey("job.id" ),primary_key=True)
+    company_id = db.Column(db.Integer,db.ForeignKey("company.id"),primary_key=True,)
     jobs = db.relationship("Job",back_populates="provides")
     company = db.relationship("Company",back_populates="provide")
+
 class Jobseeker(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(20), nullable=True,unique=True)
@@ -75,7 +76,7 @@ class Jobseeker(db.Model):
         return schema
 
 class Job(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer,primary_key=True)
     name = db.Column(db.String(20), nullable=False)
     salary = db.Column(db.String(20), nullable=False)
     introduction = db.Column(db.String(20), nullable=False, unique=True)
