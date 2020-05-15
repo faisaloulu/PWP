@@ -30,4 +30,4 @@ Then you can run company_user in static as a client end.
 
 It is worth declaring:<br>
 We didn't implement JobsByCategory and JobsByRegion resources in the API implementing process. You can test other functions using a url with the help of Talend API Tester.<br>
-And we only implement company_user part in the client implementing process
+And we only implement company_user part as client
